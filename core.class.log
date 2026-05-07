@@ -1,0 +1,454 @@
+[handleMsg]:  {
+  key: {
+    remoteJid: '193033194717272@lid',
+    remoteJidAlt: '5212225589335@s.whatsapp.net',
+    fromMe: false,
+    id: 'AC6668E297EAD0F8E3F429213FCC1FE2',
+    participant: '',
+    participantAlt: undefined,
+    addressingMode: 'lid'
+  },
+  category: undefined,
+  messageTimestamp: 1778126590,
+  pushName: '~',
+  broadcast: false,
+  message: Message {
+    conversation: 'Tienes ejemplos',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'Tienes ejemplos',
+  name: '~',
+  from: '5212225589335',
+  host: '5219515810685'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  keyword: 'key_aca100ad-25c3-4207-8e37-373bd53387f5',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: '65c2abd890536c7f6e7e7325be4502f6'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_2c05974d-ff98-4411-a288-1d4ca9061062',
+  keyword: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: 'f759e93273b799e89c25b9fd00da9741'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '193033194717272@lid',
+    remoteJidAlt: '5212225589335@s.whatsapp.net',
+    fromMe: false,
+    id: 'AC16855F2134E3D5FDDAB3E5EF759AFB',
+    participant: '',
+    participantAlt: undefined,
+    addressingMode: 'lid'
+  },
+  category: undefined,
+  messageTimestamp: 1778126642,
+  pushName: '~',
+  broadcast: false,
+  message: Message {
+    conversation: 'Como es el proceso +',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'Como es el proceso +',
+  name: '~',
+  from: '5212225589335',
+  host: '5219515810685'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  keyword: 'key_aca100ad-25c3-4207-8e37-373bd53387f5',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: '65c2abd890536c7f6e7e7325be4502f6'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_2c05974d-ff98-4411-a288-1d4ca9061062',
+  keyword: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: 'f759e93273b799e89c25b9fd00da9741'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '193033194717272@lid',
+    remoteJidAlt: '5212225589335@s.whatsapp.net',
+    fromMe: false,
+    id: 'AC9D244C6FC878005165E7A72E3CF700',
+    participant: '',
+    participantAlt: undefined,
+    addressingMode: 'lid'
+  },
+  category: undefined,
+  messageTimestamp: 1778126677,
+  pushName: '~',
+  broadcast: false,
+  message: Message {
+    conversation: 'Yo estoy en Oaxaca',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'Yo estoy en Oaxaca',
+  name: '~',
+  from: '5212225589335',
+  host: '5219515810685'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  keyword: 'key_aca100ad-25c3-4207-8e37-373bd53387f5',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: '65c2abd890536c7f6e7e7325be4502f6'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_2c05974d-ff98-4411-a288-1d4ca9061062',
+  keyword: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: 'f759e93273b799e89c25b9fd00da9741'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '193033194717272@lid',
+    remoteJidAlt: '5212225589335@s.whatsapp.net',
+    fromMe: false,
+    id: 'AC396AE82DF6A0925C16081B1C726D26',
+    participant: '',
+    participantAlt: undefined,
+    addressingMode: 'lid'
+  },
+  category: undefined,
+  messageTimestamp: 1778126709,
+  pushName: '~',
+  broadcast: false,
+  message: Message {
+    conversation: 'Si',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'Si',
+  name: '~',
+  from: '5212225589335',
+  host: '5219515810685'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  keyword: 'key_aca100ad-25c3-4207-8e37-373bd53387f5',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: '65c2abd890536c7f6e7e7325be4502f6'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_2c05974d-ff98-4411-a288-1d4ca9061062',
+  keyword: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: 'f759e93273b799e89c25b9fd00da9741'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '193033194717272@lid',
+    remoteJidAlt: '5212225589335@s.whatsapp.net',
+    fromMe: false,
+    id: 'AC96639E64256E9256903518E29A3D2A',
+    participant: '',
+    participantAlt: undefined,
+    addressingMode: 'lid'
+  },
+  category: undefined,
+  messageTimestamp: 1778126735,
+  pushName: '~',
+  broadcast: false,
+  message: Message {
+    conversation: 'De acero',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'De acero',
+  name: '~',
+  from: '5212225589335',
+  host: '5219515810685'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  keyword: 'key_aca100ad-25c3-4207-8e37-373bd53387f5',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: '65c2abd890536c7f6e7e7325be4502f6'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_2c05974d-ff98-4411-a288-1d4ca9061062',
+  keyword: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: 'f759e93273b799e89c25b9fd00da9741'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '193033194717272@lid',
+    remoteJidAlt: '5212225589335@s.whatsapp.net',
+    fromMe: false,
+    id: 'AC8EA9A99AEFE0F20438CCF4B07E1B08',
+    participant: '',
+    participantAlt: undefined,
+    addressingMode: 'lid'
+  },
+  category: undefined,
+  messageTimestamp: 1778126761,
+  pushName: '~',
+  broadcast: false,
+  message: Message {
+    conversation: 'Cusnto cuestan?',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'Cusnto cuestan?',
+  name: '~',
+  from: '5212225589335',
+  host: '5219515810685'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  keyword: 'key_aca100ad-25c3-4207-8e37-373bd53387f5',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: '65c2abd890536c7f6e7e7325be4502f6'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_2c05974d-ff98-4411-a288-1d4ca9061062',
+  keyword: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: 'f759e93273b799e89c25b9fd00da9741'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '193033194717272@lid',
+    remoteJidAlt: '5212225589335@s.whatsapp.net',
+    fromMe: false,
+    id: 'ACEC08495D834EE6163398309415541D',
+    participant: '',
+    participantAlt: undefined,
+    addressingMode: 'lid'
+  },
+  category: undefined,
+  messageTimestamp: 1778126809,
+  pushName: '~',
+  broadcast: false,
+  message: Message {
+    conversation: 'Que datos lleva la plaquita?',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2,
+      messageSecret: [Uint8Array]
+    }
+  },
+  body: 'Que datos lleva la plaquita?',
+  name: '~',
+  from: '5212225589335',
+  host: '5219515810685'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  keyword: 'key_aca100ad-25c3-4207-8e37-373bd53387f5',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: '65c2abd890536c7f6e7e7325be4502f6'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_2c05974d-ff98-4411-a288-1d4ca9061062',
+  keyword: 'ans_0e4b0986-f176-4de0-9d4a-5672a7a241b8',
+  answer: '__call_action__',
+  options: {
+    media: undefined,
+    buttons: [],
+    capture: false,
+    delay: 0,
+    idle: undefined,
+    ref: undefined,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: 'f759e93273b799e89c25b9fd00da9741'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '58141257502913@lid',
+    remoteJidAlt: '447974905090@s.whatsapp.net',
+    fromMe: false,
+    id: '39187102BD8599A30F',
+    participant: '',
+    participantAlt: undefined,
+    addressingMode: 'lid'
+  },
+  category: undefined,
+  messageTimestamp: 1778134949,
+  pushName: undefined,
+  broadcast: false,
+  message: Message {
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2
+    },
+    placeholderMessage: PlaceholderMessage { type: 0 }
+  },
+  verifiedBizName: 'Facebook',
+  body: '',
+  name: undefined,
+  from: '447974905090',
+  host: '5219515810685'
+}

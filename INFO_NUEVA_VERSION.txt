@@ -1,0 +1,59 @@
+5 Diciembre 2024 | FER ACERU
+En esta nueva version el avance que se hizo fue:
+
+- ADEI como agente global, se activa o desactiva con
+  Adei_IA_On
+  Adei_IA_Off
+(En particular aqui está permanentemente activa, para entrar siempre como asesora de ventas)
+
+Incluso estando encendida,se puede acceder a agentes locales
+- Margus Aurel
+- Lila24
+
+Se puede aislar a alguien completamente de la IA:
+- REVPER = Aislar (revision personal)
+- REVIA = Se reintegra a la IA
+
+Uso de conocimiento por FILESEARCH:
+- Utiliza vector Store de asistente OPENAI, donde se cargan archivos PDF con datos y conocimiento a usar.
+
+VISION IA:
+- Cuenta con funcion de vision IA, para poder ver las imagenes que recibe
+y dar respuesta a ello
+
+VOZ DESACTIVADA:
+- Le desactive la voz para que no sintetice las respuestas pero aun escucha las notas de voz 
+y las responde
+
+CONCURRENCIA DE MENSAJES SOLUCIONADA:
+- Estaba un poco mal la localizacion de lineas de codigo, las revisé y puse correctamente
+Ya puede recibir muchos mensajes simultaneamente, contesta uno a uno, sin mezclar threads,
+y sin perder runs.
+
+MENSAJE INICIAL SOLO PRIMERA VEZ
+- Agregue un mensaje inicial para pedir al cliente que envie sus preguntas en un solo mensaje
+que envie notas de voz, e imagenes.
+
+KEYWORDS DESACTIVADAS
+- El codigo sigue en el proyecto, pero lo deje desactivado para que no las revise ni las utilice
+sino que entre siempre directamente la IA.
+
+
+Cada agente utilzia su propioa asistente, su propia voz, y da continuidad a su propio hilo.
+Ademas, claro, admiten recibir y analizar (describir y procesar) imagenes, que se implemento en version 9 anterior.
+
+::::::::::::::::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::::::::::::::::::
+7 DICIEMBRE 2024
+Particularidades de enfoque para ORBITIA 3D
+*PROBLEMAS COMUNES
+*TABLA DE FILAMENTOS Y VALORES | COMPATIBILIDAD CON MARCAS DE IMPRESORAS Y MODELOS
+*SUGERENCIAS DE POSTPROCESADO
+*ASESORIA COMERCIAL (IDEAS DE NEGOCIOS-PROYECTOS | Costos y precios de venta)
+*BUSQEUDA DE ARCHIVOS STL (GENERAR ENLACES DE BUSQUEDA A THINGIVERSE, CULTS, ETC)
+
+*VISION AI: Identificar tipos de modelos y bucar STLS similares
+*VISION AI: Identificacion de problemas de impresión y sugerencias
+*VISION AI: Identificacion de piezas, partes, refacciones
+*VISION AI: Identificacion de parámetros, pantalla CURA, y sugerencias
+*VISION AI: Identificacion de tipos de filamentos.
