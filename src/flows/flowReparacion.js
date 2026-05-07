@@ -1,0 +1,1290 @@
+//ULTIMA MODIFICACION SIGNIFICATIVA 
+//1 DE JUNIO 2025 | FER ACERU
+//INTEGRACION DE FUNCIONES LLAMADAS DESDE ASSISTANT GPT
+//Lectura y escritura de archivo Google Sheet
+//Consulta de pedidos, inventario, producto
+//Uso o bloqueo de funciones mediante contraseña, pensado en RUTH para ANDIVI
+//Si eres un cliente normal solo te daría informacion de productos etc...
+//Si tienes X clave (empleado) puedes leer algunos archivos y pedir informacion de los pedidos etc para facilitar trabajo
+//Si tienes Y clave (acceso total) podemos leer, y escribir en esos archivos (y en un futuro mas funciones quizas)
+
+//Codigo ensamblado o integrado en desarrollo por FerAceru | Mayo24 a 5-DICIEMBRE-2024
+//Fer del futuro, si algún dia ves esto de nuevo, recuerda que no sabíamos absolutamente nada de esto
+//pero aun así lo hicimos. Estamos luchando por un triunfo real, buscamos la innovación y la mejora continua
+//quizás por que debamos, pero quizás por que no tenemos opción; no podemos luchar en dinero, ni en relaciones, ni en política
+//no tenemos tanta experiencia, ni contactos, ni inversiones, ni estrategias fiscales, ni empleados, ni redes de distribución, quizás casi nada.
+//Pero, tenemos esto, que nos mantiene firmes, al descubrir caminos nuevos, recorrerlos hasta encontrar o construir lo que queremos.
+//Sabemos bien que bloquearán los caminos sencillos, o al menos los evidentes, y tenemos que buscar los caminos alternativos, las herramientas nuevas
+//las ideas nuevas, entrar por la particularidad y no por la verticalidad. (aún)
+//Cuando no se pueden enfrentar los problemas, competencia, obstaculos, enemigos, etc... de forma frontal debemos pensar que
+//Nuestro objetivo no es pelear con ninguno de ellos, ni demostrarles nada a ellos. Nuestro objetivo es pasar, es seguir, es avanzar, y para eso
+//tenemos nuestra propia forma, nuestro propio camino, a veces los que nadie quiere recorrer, y a veces, los que nadie puede ver.
+
+//Estees el mismo codigo que la version 11 de ADEI, pero con modificaciones en los agentes para que funcione como un HUB para atencion a soporte
+//HUB = Distribuidor o Recepcionista = Felipe
+//LILA 24 = Lila = Soporte Impresoras 3D y Filamentos
+
+
+/*
+::::::::::::::CAMBIOS A REALIZAR SI SEHACE CAMBIO DE AGENTES, VOCES E IAS:::::::::::::::::
+Archivo openai-threads.js en linea 57: Instruccion para analisis de imagen por IA.
+
+49 Asistente General Inicial PP
+83 Desactivar voz por defecto
+204 Activar o desactivar Keywords (mas facil solo activar la #222 y asi marca como segundo mensaje y se salta keywords)
+221 Activar si se desea que la IA GLOBAL este permanentemente encendida (no IA locales)
+222 Linea para activar automatico como "segundo mensaje" y asi permitir que entre de inmediato la IA.
+
+225 Opcional, definir entidad 1 como defecto
+228 Flowdynamic Mensaje de Inicio para todo contacto
+253 Nuevamente parte de revision de keywords para mensajes automaticos por palabra clave
+
+365 Datos de IA GLOBAL (asistente, Nombre, Hilo, Hilo, Voz, Consola)
+379 Nombre de IA Global para mensaje consola
+404 Para activar IAs locales o bien, tener siempre activa a la global solamente.
+
+408 DATOS DE IA LOCAL Entidad 2 (clave acceso, entidad, asistente, mensaje, hilo, hilo, voz, consola)
+419 DATOS DE IA LOCAL Entidad 3
+430 DATOS DE IA LOCAL Entidad 4
+507 DATOS DE IA GLOBAL en caso de "Adios" para regresar al HUB inicial.
+
+613 Enfoque de vision IA segun la entidad asignada
+633 Instrucciones de como tomar la vision IA de acuerdo a entidad asignada
+
+688 Recordatorio de revisar documentos pero como parte del mensaje de usuario
+855 Recordatorio de revisar documentos pero como "instructions" parte de funcion RunThreadAndAwait
+
+765 Asignacion de Vector Stores para consulta de archivos, segun entidad, respetar hilos.
+786 Verificacion de hilos asignados, segun nombres de agentes, variables hilos.
+858 Activar o desactivar sintetizador de voz.
+*/
+
+
+//Linea pendiente de analizar, interesante
+//Enviar mensaje cuando algo sucede a otro numero
+/*
+async (ctx, { provider }) => {
+        await provider.sendText('123456789@s.whatsapp.net', 'El cliente ha solicitado una asesoría, comunícate con la persona a la brevedad posible.')
+    }NPM 
+*/
+
+
+import get_Keywords from "./flowEntrada.js";
+import {ChatGPTClass} from "../chatgpt.class.js";   //Importante incluir esta libreria
+                                                    //Aunque no se use explicitamente, actualmente es la que llama y conecta
+                                                    //con la clave API KEY con OpenAI GPT.
+//const chatGPT = new ChatGPTClass();
+//const chatgptClass = new ChatGPTClass();
+//import { readFileSync } from 'fs';
+//import { join } from 'path';
+
+//import fs from 'fs';
+import path from 'path'; // Importación de path para ES modules
+import { fileURLToPath } from 'url';
+
+// Esto es necesario en ES modules para obtener el directorio actual
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
+//import { OpenAIThread } from "../../node_modules/openai-threads/index.mjs";
+//import { OpenAIThread } from "../../openai-threads.class.js";
+
+//#49 Asistente General Inicial PP
+import { OpenAIThread } from "../openai-threads.js";
+var thread = new OpenAIThread("asst_o4jtbD9WrkSo9L5y8LkUDSh9");
+
+import { registrar_funciones_ia } from "../funciones_IA.js";
+
+
+//Declaracionese inclusiones de funciones necesarias del BOT
+import { addKeyword, utils, EVENTS, MemoryDB } from '@builderbot/bot';
+
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+//import { init } from "bot-ws-plugin-openai";
+//import { start } from "repl";
+
+
+import { handlerAI } from "../utils.js";
+import { textToVoice } from "../services/eventlab.js";
+
+import {
+  flowInfo,
+  flowInfo2,
+  flowInfo3,
+  flowInfo4,
+  flowInfo5,
+  flowInfo6,
+  flowInfo7,
+  flowInfo8,
+  flowInfo9,
+  flowInfo10,
+  flowInfo11,
+  flowInfo12,
+  flowInfo13,
+  flowInfo14,
+  flowInfo15,
+  flowInfo16,
+  flowInfo17,
+  flowInfo18,
+  flowInfo19,
+  flowInfo20,
+  flowInfo21,
+  flowInfo22,
+  flowInfo23,
+  flowInfo24,
+  flowInfo25,
+  flowInfo26,
+  flowInfo27,
+  flowInfo28,
+  flowInfo29,
+  flowInfo30
+} from "./flowInfo.js";
+
+import {flowEntrada} from "./flowEntrada.js";  //Necesitamos esta referencia ya que usaremos el gotoFlow a este flujo
+
+
+
+//Datos predeterminados, corresponden a Adei. Solo cambiaran si se meten palabras clave.
+var entidad = 1; //Seleccionar entidad IA; 0=LaserCO2, 1=MargusAurel
+
+//var voz_uso="XrExE9yKIg1WjnnlVkGX"; //Variable para definir el ID de sintetizador de voz
+
+var segundo_mensaje=0;
+
+
+
+    //Variables que me servirá cambiar repetidamente en varias partes del flujo
+    var textCliente='-'; //Texto obtenido de nota de voz (o msj) del cliente
+    //#83 Desactivar voz por defecto
+    var voz=0;   //Variable bandera para saber si se procesará nota de voz o mensaje
+    let Primer_Mensaje = ["01234567890", "9876543210"]; //Arreglo de numeros que ya enviaron su primer mensaje.
+
+  
+////////////////////////////////////////////////////////////////////////////////////
+//FER ACERU: Aañadí estas lineas de la documentacion https://codefile.io/f/IhFFNGmZ4t5b0xBAibui encontrada en el discord
+//Que crean un arreglo de numeros telefonicos que son "apagados" y que se revisa antes de iniciar el flujo
+//Si el numero está desactivado en el arreglo, se cancela y termina el flujo.
+//De forma que el BOT o asistente nunca se logra iniciar para un X número.
+//Puede ser activado con "IA_Adei"
+let NumerosTelefonico = {}
+const defaultEstado = { encendido: false }
+var Keywords_Producto = []
+
+//RACHEL: 21m00Tcm4TlvDq8ikWAM
+//JOSH: TxGEqnHWrfWFTfGW9XjX
+//MATILDA: XrExE9yKIg1WjnnlVkGX
+
+//////////////////////////////////////INICIA FLOW REPARACION RECONOCIMIENTO DE PALABRAS CLAVE///////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+const flowReparacion = addKeyword([EVENTS.VOICE_NOTE, EVENTS.MEDIA, EVENTS.WELCOME])  
+  //Aqui inicia todo lo que procesaremos sobre el mensaje recibido y 
+  //funciones con IA
+
+  //Codigo para poner mensajes rapidos en uno solo con funcion de BuilderbOT Documentacion; Fast Entries (ajustada a .js por mi y GPT)
+  .addAction(async(ctx, {gotoFlow,endFlow,provider,globalState,state}) => {   
+
+    const ctx_gpt = globalState.get('gpt'); //Guardamos variable "gpt" de global state para saber si está corriendo actualmente una consulta
+
+   //Si hay una consulta activa entonces el msj se va a perder
+ //Asi que procedemosa unirlo y guardarlo en state
+
+      await state.update({ fila_msj: '1' })                 //Activamos bandera de que hay una fila de msj por atender de este ctx o chat
+      let new_mensaje_acum = state.get('mensaje_acum');     //En esta variable leemos el mensaje acumulado actual
+
+
+ //////////////////IMAGEN VISION IA////////////////////////
+ //if (ctx.body.includes('_event_media')){ //Si llega una imagen rapidamente la guardamos, y actualizamos state para revisarla 
+  //console.log(ctx);
+
+if (
+  ctx.body.includes('_event_media') &&
+  ctx.message && ((ctx.message.imageMessage && ctx.message.imageMessage.mimetype) || (ctx.message.videoMessage && ctx.message.videoMessage.mimetype))
+)
+{
+
+
+  const img_path_dir = await path.join(__dirname, '../../PICS'); //Defino como directorio para la imagen la carpeta PICS (ya debe existir
+  const rutapic = await provider.saveFile(ctx, { path: img_path_dir });  //Guardo el archivo que me da el provider
+  await state.update ({img_path: rutapic}) //Guardamosla ruta de guardado en variable state img_path
+  console.log("Se guardó la imagen/video recibida en: ");
+  console.log(rutapic);
+  //En esta parte verificamossi se recibio imagen o video, para procesar correctamente el caption
+  //Y quiensabe....quizas despues abrir la puerta del analisis de video por IA
+
+  const messageContent = ctx.message;
+  // Verificar si es un video
+  if (messageContent.videoMessage) {
+      console.log("Lo que se recibio es un video");
+      await state.update ({ imag_user: '0' })  //Activo esta bandera por si mas tarde me es conveniente saber que se esta recibiendo/tratando una imagen
+      await state.update ({ video_user: '1' })  //Activo esta bandera por si mas tarde me es conveniente saber que se esta recibiendo/tratando una imagen
+  
+      if (ctx.message.videoMessage.caption != null){
+        new_mensaje_acum = new_mensaje_acum + ctx.message.videoMessage.caption;                 //Le añadimos el mensaje actual
+      }
+      // Aquí puedes acceder a las propiedades de video
+  }
+  
+  // Verificar si es una imagen
+  else if (messageContent.imageMessage) {
+      console.log("Lo que se recibio es una imagen");
+      await state.update ({ imag_user: '1' })  //Activo esta bandera por si mas tarde me es conveniente saber que se esta recibiendo/tratando una imagen
+      await state.update ({ video_user: '0' })  //Activo esta bandera por si mas tarde me es conveniente saber que se esta recibiendo/tratando una imagen
+  
+      if (ctx.message.imageMessage.caption != null){
+        new_mensaje_acum = new_mensaje_acum + ctx.message.imageMessage.caption;                 //Le añadimos el mensaje actual
+        }
+      // Aquí puedes acceder a las propiedades de imagen
+  }
+}
+
+else {new_mensaje_acum = new_mensaje_acum + ' ' + ctx.body;}     //Si el mensaje no incluye "_event_media" entonces le añadimos el mensaje actual
+
+////////////////////////////////////FIN SECCION DE RECONOCIMIENTO DE IMAGEN PARA GUARDAR /////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    await state.update({ mensaje_acum: new_mensaje_acum  })   //Lo guardamos nuevamene ya actualizado.
+    console.log("FILA ACUMULADA DE MENSAJES");
+    console.log(new_mensaje_acum);
+  })
+
+
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//SECCION DE ADDACTION => TODO LO QUE SE HACE O PROCESA DESPUES DE INICIADO EL FLOW POR MENSAJE ENTRANTE
+
+
+//FER ACERU: Codigo ACTION que es el encargado de revisar un numero en el listado
+//inmediatamente al iniciar el flujo para saber si continuar o abortar.
+.addAction (async (ctx, {flowDynamic, endFlow, gotoFlow, globalState, state, provider,adapterProvider}) => {
+  console.log('Se ha activado el FlowReparacion...');
+
+  //flowDynamic(`Si estoy checando tu mensaje al: ${ctx.to}`);
+  const getEstado = (numeroTelefono) => {
+    return NumerosTelefonico[numeroTelefono] || defaultEstado
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////ETAPA DE DISCRIMINACION PARA FLOWS SECUNDARIOS////////////////////////////////////
+  ///////////////////////////////////////ENTRADA O PRIMERA CONEXION DE CHAT//////////////////////////////////////////////////////////
+
+  await state.update({ segundo_mensaje:'0'}); //Agregue esta linea paa asegurar que se actualiza el state en 1er mensaje
+
+  let IA_USO = state.get('ia_activa');
+  
+
+  if (IA_USO != '0' && IA_USO != '1') {     //Solo sucede cuando se inicializa el chat, no es ni 0 ni 1, es undefined
+    await state.update({ ia_activa: '0' })  //Desactivamos el permiso de IA
+    await state.update({ aislado: '0'})
+
+    //#204 Activar o desactivar Keywords
+    //Agregue recientemente JUL 25 la condicion If para que solo se carguen las keywords cuand el arreglo está vacío
+    //es decir solo la primera vez. Ya que la variable es global y quita tiempo hacero en cada mensaje
+    if ((Keywords_Producto.length === 0)){
+    Keywords_Producto = await get_Keywords(); //Y obtenemos palabras clave a revisar en primer mensaje
+    }                                            //Descomentar linea si se van a usar los archivos txt para respuestas automaticas
+                                                //La comenté para evitar que en consola se repita a todo momento la revision de las keywords
+                                                //cada que entra un mensaje
+
+    IA_USO = state.get('ia_activa');    //Volvemos a leer para tener bien guardado el valor "0" que acabamos de definir.
+    //await state.update({ mensaje_acum: ' '  }) // Vaciamos lista de mensaje acum, ya que estamosprocesando el primer mensaje
+    await state.update({ mensaje_cero: ctx.body }) //Guardamos en variable state el mensaje recibido por si se toma
+                                                  //como contexto despues (Me pareceq ue esto ya no se utilizó, debido al uso de threads)
+
+
+      //Asignamos una entiedad y voz por default al bot
+      //Configuraciones iniciales para Bot ya que probablemente no haya cambio de entidad
+      //En el primer uso activamos la ADEI IA automatico, para saber que esta funcionando siempre al iniciar                                              
+      
+      //IMPORTANTE REVISAR ESTAS LINEAS - AFECTAN EL FUNCIONAMIENTO CONTINUO DE UNA IA GLOBAL O BIEN, PARA QUE
+      //SE TENGA QUE ACTIVAR MANUALMENTE LA GLOBAL Y PERMITA EL PASO ENTRE LAS IA LOCALES
+      
+      //#221 Activar si se desea que la IA GLOBAL este permanentemente encendida (no IA locales)
+      await globalState.update({Adei_Dominio: 'On'});  //SOLO ACTIVA ESTA LINEA SI SE QUIERE PERMANENTEMENTE ENCENDIDA LA IA
+
+      //#222 Linea para activar automatico como "segundo mensaje" y asi permitir que entre de inmediato la IA.
+      await state.update({ segundo_mensaje: '1' })      // Esta tambien
+
+      //***REALIZAR CAMBIO AQUI SI SE VAN A CAMBIAR AGENTES, ENTIDADES, ASISTENTES...... CAMBIO IA
+      //#225 Opcional, definir entidad 1 como defecto
+      entidad = 1;                                            //Entidad global/principal o HUB de distribucion.
+                                                                //La comenté para que no active siempre le entidad 1 (solo con clave)
+                                                                //Pero si es par atencion global pues...deberiamos dejarla activa como estaba
+      //await state.update({ voz: "XrExE9yKIg1WjnnlVkGX" })    //Voz de Adei
+
+      //#228 Flowdynamic Mensaje de Inicio para todo contacto
+
+
+       /*
+      flowDynamic('Estamos recibiendo muchas consultas, 1s y en seguida estoy contigo.\n\n'+
+        'Si escribes en un solo mensaje, la comunicación será más fácil 🙋‍♀️\n\n'+
+        'Tambien puedes enviarme notas de voz o fotos, las reviso y las responderé una a una. 😊');
+        */
+
+        /*
+        await flowDynamic('Bienvenido a FAOMIC MX! 🇲🇽⚙️✨\n'+
+        'Somos una empresa líder en innovación 3D, láser y CNC con envíos a todo México! 🙋‍♀️\n\n'+
+        '😊 Contamos con calificaciones certificadas de 5 estrellas en todos nuestros perfiles:\n\n'+
+        ' *Facebook: 106K seguidores* https://www.facebook.com/FaomicMX \n'+
+        ' *Instagram: 92K seguidores* https://www.instagram.com/faomic \n'+
+        ' *TikTok: 115K seguidores* https://www.tiktok.com/@faomicmx \n'+
+        ' *Google Maps 5🌟*: https://maps.app.goo.gl/TERGeV6fqeh1MXaN6 \n'+
+        ' *Sucursal Física*: Av. Hidalgo 1320, Col Centro, CP 68000. \n'  );//+
+        */
+
+        /*
+        ' Catálogo completo: www.faomic.com \n\n'+
+        ' *🎁 Recibe grandes beneficios de nuestra comunidad FAOMIC al adquirir un equipo!* \n'+
+        '> Envios gratis a todo México \n'+
+        '> Soporte y garantía \n'+
+        '> Manuales de trabajo especializado \n'+
+        '> Capacitaciones \n'+
+        '> Accesorios exclusivos \n'+
+        '> Materiales de mayoreo \n'+
+        '> Asesoría comercial \n'+
+        ' Y mucho más para acompañarte en tus proyectos y emprendimientos! 🌟👩‍🏭 \n' );
+        */
+          
+       /*
+          flowDynamic('*📚 MANUALES EXCLUSIVOS FAOMIC | TRABAJO COMERCIAL*\n'+
+        'https://www.faomic.com/cursos',{
+         media: 'PICS/MANUALES_SLIDE.JPG'       
+        });
+       */
+
+
+     /*
+          flowDynamic('Estas son algunas de las máquinas que tenemos en promoción. ¿Cuál es la que te agradó? 😊 www.faomic.com', {
+            media: 'PICS/Imagen_Catalogo_Express_Promocion.jpg'
+        });
+     */
+
+
+
+
+
+      /*
+      flowDynamic('Bienvenido a Faomic *Orbitia* \n\n'+
+        'Si escribes en un solo mensaje, la comunicación será más fácil 🙋‍♀️\n\n'+
+        '*Sugerencias de aprovechamiento:*\n'+
+        '> Identificación y solución de problemas de impresión\n'+
+        '> Asesoría comercial, costos y ventas. \n'+
+        '> Identificacion de problemas, partes, funciones o refacciones.\n'+
+        '> Consulta de parámetros y configuraciones.\n'+
+        '> Identificación y busqueda de diseños 3D.\n'+
+        '> Análisis de pantalla de parámetros y sugerencias.\n'+
+        '> Conocimientos exclusivos de Faomic y manuales especializados 3D.\n\n'+
+        'Ingresa tu clave de acceso con exactitud.');
+        */
+  }
+
+  //En BOT ADEI no habria cambio de entidad pero....en caso de que la hubiese quizas para la version de apoyo tecnico, creo que
+  //lo mejor es que fuera tambien una variable state, para que el cambio solo se efectue en cata contexto/numero particularmente
+  //TOMAR EN CUENTA QUE EL CODIGO HACE REFERENCIA A ADEI como entidad global, pero al asignar asistente, voz, etc, puede asignarse otro.
+  let entidad_cambio=0; //Bandera para avisar que hubo cambio de entidad, y necesita reabrirse hilo y user. (en este caso iniciamos sin cambio, 0)
+  let Adei_Switch = globalState.get('Adei_Dominio'); //Leemos la variable global de activacion de agente principal
+  let IA_AISLADO = state.get('aislado');
+
+  ///////////////////////////////////////////////////
+  //ESTA PARTE VERIFICA LAS KEYWORDS PARA PRIMER MENSAJE, ASI QUE LO CONDICIONO AL INICIO DE IA CON PERMISO GLOBAL DE ASISTENTE PRINCIPAL
+  //////////////////////////////////////////////////////////////
+  //Reescribi esta linea a IF(0) para que no se ejecute nunca, ya que en esta prueba no deseo que utilice los archivos de texto .txt de respuesta
+  //automatica para palabras clave, si no que entre directamente la IA para dar informacion
+  //Si se requiere lo contrario, entonces descomentar la linea de adelante y eliminar el if(0)
+  //#253 Nuevamente parte de revision de keywords para mensajes automaticos por palabra clave
+  //if (0){ 
+
+  await state.update({ segundo_mensaje: '1' })      // Activar/descomentar si queremos que permanente
+                                                    //este como "segundo mensaje" y asi evitar keywords
+                                                    //Comentar si deseamos que siga el curso normal, aunque
+                                                    //hay que probar, en realidad una vez que pasa el primer mensaje
+                                                    //ya nuca deberia ser cero
+
+segundo_mensaje = state.get('segundo_mensaje');    //Volvemos a leer
+
+console.log("2do Mensaje:");
+console.log(segundo_mensaje);
+console.log("- Adei Switch: ");
+console.log(Adei_Switch);
+console.log(" -  IA AISLADO: ");
+console.log(IA_AISLADO);
+
+
+
+  //if (IA_USO!='1' && Adei_Switch == 'On' && IA_AISLADO=='0'){  ## Linea inicial
+  if (segundo_mensaje !='1' && Adei_Switch == 'On' && IA_AISLADO=='0'){  //##Linea modificada 6 Jul 25 
+                                                                        //Mientras segundo_mensaje sea diferente de '1' (puede ser '0' o valor inicial 0 (int))
+                                                                        //Entramos a revisar por keywords....
+                                                                        //Si no se recibe keyword (entonces es un segundo mensaje de ddudas)
+                                                                        //activamos segundo mensaje '1' y ya no entramos mas a buscar keywords
+  //Generamos un numero aleatorio para el tiempo de espera por mensajes (que nos ayuda a esperar tiempos dinamicos)
+  //en la conversacion antes de comenzar a responder ChatGPT
+  const numeroAleatorio = Math.floor(Math.random() * (8001 - 3000) + 3000);  //Entre 3000 y 8000
+  
+  await espera_mensajes(numeroAleatorio);
+//await espera_mensajes(500);
+
+  //Actualizamos estado "escribiendo" en whatsapp
+  const id = ctx.key.remoteJid;
+  await provider.vendor.sendPresenceUpdate('composing', id)
+
+
+console.log("Revisando si coincide con KEYWORDS...");
+
+   ctx.body=ctx.body.toLowerCase(); //En esta parte convertimos el texto recibido a minisculas para que la comparacion o deteccion
+                            //de keywords no sea dependiente de mayusculas/minisculas
+                            //Previamente en donde se generan los KEYWORDS (flowEntrada) tambien estan ya convertidos a minisculas
+    
+if      (ctx.body.includes(Keywords_Producto[0][0]) || ctx.body.includes(Keywords_Producto[0][1]) || ctx.body.includes(Keywords_Producto[0][2]))  gotoFlow(flowInfo);
+else if (ctx.body.includes(Keywords_Producto[1][0]) || ctx.body.includes(Keywords_Producto[1][1]) || ctx.body.includes(Keywords_Producto[1][2]))  gotoFlow(flowInfo2);
+else if (ctx.body.includes(Keywords_Producto[2][0]) || ctx.body.includes(Keywords_Producto[2][1]) || ctx.body.includes(Keywords_Producto[2][2]))  gotoFlow(flowInfo3);
+else if (ctx.body.includes(Keywords_Producto[3][0]) || ctx.body.includes(Keywords_Producto[3][1]) || ctx.body.includes(Keywords_Producto[3][2]))  gotoFlow(flowInfo4);
+else if (ctx.body.includes(Keywords_Producto[4][0]) || ctx.body.includes(Keywords_Producto[4][1]) || ctx.body.includes(Keywords_Producto[4][2]))  gotoFlow(flowInfo5);
+else if (ctx.body.includes(Keywords_Producto[5][0]) || ctx.body.includes(Keywords_Producto[5][1]) || ctx.body.includes(Keywords_Producto[5][2]))  gotoFlow(flowInfo6);
+else if (ctx.body.includes(Keywords_Producto[6][0]) || ctx.body.includes(Keywords_Producto[6][1]) || ctx.body.includes(Keywords_Producto[6][2]))  gotoFlow(flowInfo7);
+else if (ctx.body.includes(Keywords_Producto[7][0]) || ctx.body.includes(Keywords_Producto[7][1]) || ctx.body.includes(Keywords_Producto[7][2]))  gotoFlow(flowInfo8);
+else if (ctx.body.includes(Keywords_Producto[8][0]) || ctx.body.includes(Keywords_Producto[8][1]) || ctx.body.includes(Keywords_Producto[8][2]))  gotoFlow(flowInfo9);
+else if (ctx.body.includes(Keywords_Producto[9][0]) || ctx.body.includes(Keywords_Producto[9][1]) || ctx.body.includes(Keywords_Producto[9][2]))  gotoFlow(flowInfo10);
+else if (ctx.body.includes(Keywords_Producto[10][0]) || ctx.body.includes(Keywords_Producto[10][1]) || ctx.body.includes(Keywords_Producto[10][2])) gotoFlow(flowInfo11);
+else if (ctx.body.includes(Keywords_Producto[11][0]) || ctx.body.includes(Keywords_Producto[11][1]) || ctx.body.includes(Keywords_Producto[11][2])) gotoFlow(flowInfo12);
+else if (ctx.body.includes(Keywords_Producto[12][0]) || ctx.body.includes(Keywords_Producto[12][1]) || ctx.body.includes(Keywords_Producto[12][2])) gotoFlow(flowInfo13);
+else if (ctx.body.includes(Keywords_Producto[13][0]) || ctx.body.includes(Keywords_Producto[13][1]) || ctx.body.includes(Keywords_Producto[13][2])) gotoFlow(flowInfo14);
+else if (ctx.body.includes(Keywords_Producto[14][0]) || ctx.body.includes(Keywords_Producto[14][1]) || ctx.body.includes(Keywords_Producto[14][2])) gotoFlow(flowInfo15);
+else if (ctx.body.includes(Keywords_Producto[15][0]) || ctx.body.includes(Keywords_Producto[15][1]) || ctx.body.includes(Keywords_Producto[15][2])) gotoFlow(flowInfo16);
+else if (ctx.body.includes(Keywords_Producto[16][0]) || ctx.body.includes(Keywords_Producto[16][1]) || ctx.body.includes(Keywords_Producto[16][2])) gotoFlow(flowInfo17);
+else if (ctx.body.includes(Keywords_Producto[17][0]) || ctx.body.includes(Keywords_Producto[17][1]) || ctx.body.includes(Keywords_Producto[17][2])) gotoFlow(flowInfo18);
+else if (ctx.body.includes(Keywords_Producto[18][0]) || ctx.body.includes(Keywords_Producto[18][1]) || ctx.body.includes(Keywords_Producto[18][2])) gotoFlow(flowInfo19);
+else if (ctx.body.includes(Keywords_Producto[19][0]) || ctx.body.includes(Keywords_Producto[19][1]) || ctx.body.includes(Keywords_Producto[19][2])) gotoFlow(flowInfo20);
+else if (ctx.body.includes(Keywords_Producto[20][0]) || ctx.body.includes(Keywords_Producto[20][1]) || ctx.body.includes(Keywords_Producto[20][2])) gotoFlow(flowInfo21);
+else if (ctx.body.includes(Keywords_Producto[21][0]) || ctx.body.includes(Keywords_Producto[21][1]) || ctx.body.includes(Keywords_Producto[21][2])) gotoFlow(flowInfo22);
+else if (ctx.body.includes(Keywords_Producto[22][0]) || ctx.body.includes(Keywords_Producto[22][1]) || ctx.body.includes(Keywords_Producto[22][2])) gotoFlow(flowInfo23);
+else if (ctx.body.includes(Keywords_Producto[23][0]) || ctx.body.includes(Keywords_Producto[23][1]) || ctx.body.includes(Keywords_Producto[23][2])) gotoFlow(flowInfo24);
+else if (ctx.body.includes(Keywords_Producto[24][0]) || ctx.body.includes(Keywords_Producto[24][1]) || ctx.body.includes(Keywords_Producto[24][2])) gotoFlow(flowInfo25);
+else if (ctx.body.includes(Keywords_Producto[25][0]) || ctx.body.includes(Keywords_Producto[25][1]) || ctx.body.includes(Keywords_Producto[25][2])) gotoFlow(flowInfo26);
+else if (ctx.body.includes(Keywords_Producto[26][0]) || ctx.body.includes(Keywords_Producto[26][1]) || ctx.body.includes(Keywords_Producto[26][2])) gotoFlow(flowInfo27);
+else if (ctx.body.includes(Keywords_Producto[27][0]) || ctx.body.includes(Keywords_Producto[27][1]) || ctx.body.includes(Keywords_Producto[27][2])) gotoFlow(flowInfo28);
+else if (ctx.body.includes(Keywords_Producto[28][0]) || ctx.body.includes(Keywords_Producto[28][1]) || ctx.body.includes(Keywords_Producto[28][2])) gotoFlow(flowInfo29);
+else if (ctx.body.includes(Keywords_Producto[29][0]) || ctx.body.includes(Keywords_Producto[29][1]) || ctx.body.includes(Keywords_Producto[29][2])) gotoFlow(flowInfo30);
+
+
+else {
+  //await flowDynamic('😊 Bienvenido a Faomic Snp! \nSi desea hacer preguntas escriba: *asesor*');
+  console.log(`Al parecer no coincidió con ninguna KEYWORD.`)
+  console.log(ctx.body)
+
+  await state.update({ segundo_mensaje: '1' }) //Si se recibio un primer mensaje...pero no es una KEYWORD de producto entonces respondemos con IA
+  segundo_mensaje = state.get('segundo_mensaje');    //Volvemos a leer
+}
+}
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+
+  const numeroTelefono = ctx.from 
+  console.log(`Revisando si ${numeroTelefono} está autorizado...`)
+  let estado = getEstado(numeroTelefono)
+
+ 
+  
+  //Buscamos si el numero actual ya se encuentra en la lista de primer mensaje
+  //El array Primer_Mensaje contiene a los numeros que han interactuado y recibido "bienvenida"
+  var pos = Primer_Mensaje.indexOf(ctx.from); 
+  segundo_mensaje = state.get('segundo_mensaje');    //Volvemos a leer
+
+
+//Si el numero ya esta guardado en lista, y el BOT-IA no se ha activado, y es el segundo mensaje que se recibe entonces...
+if(pos>0 && !estado.encendido && segundo_mensaje=='1'){
+  
+  let Adei_Switch = globalState.get('Adei_Dominio'); //LEEMOS NUEVAMENTE PERMISO GLOBAL, PARA ACTUALIZARLO CONSTANTEMENTE
+  let IA_AISLADO = state.get('aislado');
+  
+  //Si el permiso esta activado, entonces la bandera de IA debe estar activa, y cualquier otra IA local (o subagente) se apaga.
+  if (Adei_Switch=="On"){   await state.update({ ia_activa: '1' }) 
+                            await state.update({ IA_local: 'Off' })  } //Activamos bandera de IA
+  
+  //Si el permiso esta apagado, entonces la bandera de IA es apagada, y cualquier otra IA local (o subagente) se apaga tambien.
+  //Si se requiere uso de una IA local esta deberia ser activada de nuevo.
+  if (Adei_Switch=="Off"){  await state.update({ ia_activa: '0' }) 
+                            await state.update({ IA_local: 'Off' })  } 
+                          
+  if (IA_AISLADO == '1'){ await state.update({ ia_activa: '0' }) 
+                          await state.update({ IA_local: 'Off' })    } 
+
+    IA_USO = state.get('ia_activa');    //Volvemos a leer
+    console.log(`Este numero ya habia escrito antes. >2do mensaje. IA activada.`);
+
+    //Si se activa segundo mensaje para la IA entonces regresamos el contexto del mensaje cero 
+    const msj_cero = state.get('mensaje_cero');   //Volvemos a leer
+    //const presentacion = "Hola, quien es usted? Quiero saber:  ";
+
+       //Nueva Linea 2025
+       const presentacion = " ";
+                      
+    const acum_actual =  presentacion + msj_cero + (state.get('mensaje_acum'))    //Sumamos el mensaje cero con el acumulado actual
+    await state.update({ mensaje_acum: acum_actual   })           //Y lo reguardamos como el mensaje acum actual para que lo tome la IA
+
+  }
+
+
+  if (pos<0) {                            //Si el numero no se encuentra guardado, la posicion es negativo, lo guardamos
+    Primer_Mensaje.push(ctx.from);        //Guardamos el numero en ultima posicion de arreglo
+    console.log(`Este numero está enviando su primer mensaje. Se ha guardado ya en la lista que contiene: ${Primer_Mensaje.length} numeros guardados actualmente.`);
+    pos = Primer_Mensaje.indexOf(ctx.from);         //Obtenemos la posicion actual del numero recien guardado.
+    console.log(`Y se encuentra en la posicion: ${pos}`);  //Y revelamos en consola su posicion dentro del arreglo (solo referencial)
+
+
+
+
+
+  }        
+                                            
+
+//////////////::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::////////////////////////
+//////////////::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::////////////////////////  
+//////////////:::::::::::::EM ESTA PARTE REVISAMOS SI SE RECIBE ALGUNA CLAVE PARA ACTIVAR::::::::::::::::////////////////////////  
+//////////////::::::::::::::::::::::::::AGENTES LOCALES DE IA | O DESACTIVAR GLOBALES:::::::::::::::::::////////////////////////    
+//////////////:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://////////////////////// 
+
+//Si se quiere agregar mas subagents, debe buscarse otras lineas donde se relacionan los usos de entidad=?, para asignar instrucciones
+//de funciones como la vision IA, asignacion de hilos. (ya que en esas partes es donde se cambia entidad tambien creo ?? duda 01jun2025)
+
+//Asi podemos establecer ciertas palabras o frases clave que activen el uso de distintos agentes, asistentes, propositos o posturas
+//De asistencia, por ejemplo, soporte técnico, soporte comercial, soporte sobre un modelo en particular, o ventas.
+
+
+//***REALIZAR CAMBIO AQUI SI SE VAN A CAMBIAR AGENTES, ENTIDADES, ASISTENTES...... CAMBIO IA
+   if (ctx.body =='Global_IA_On'){                //Si se recibio frase clave "Global_IA_On" para activar IA global para todos los chats.
+    entidad = 1;  entidad_cambio=1;             //Se asigna a la entidad 1, y se activa la bandera de cambio
+    await globalState.update({ Adei_Dominio: "On" }) //Se actualiza bandera global para todos los chats
+    await state.update({ IA_local: 'Off' })           //Se apaga todas las IA locales.
+
+    //IA GLOBAL: Ruth
+    //#365 Datos de IA GLOBAL (asistente, Nombre, Hilo, Hilo, Voz, Consola)
+    thread =  new OpenAIThread("asst_o4jtbD9WrkSo9L5y8LkUDSh9");  //Se crea instancia OpenAIThread con el asistente correcto //Ruth
+    flowDynamic('Ruth: Activa');                           //Se notifica mediante mensaje rapido Whatsapp
+    const hilo_ruthX = await state.get('hilo_ruthX');             //Leemos por si hay un hilo/conv previa de ese agente particular
+    await state.update({ hilo: hilo_ruthX })                   //Lo pasamos a la variable de uso "hilo" normal o en curso
+    await state.update({ voz: "XrExE9yKIg1WjnnlVkGX" })       //ORACLE //Actualizamos la variable state con la voz correcta a utilizar | LUIS R CASIANO
+        // ¡Registro todas sus funciones de una sola vez!   
+    //registrar_funciones_ia(thread);       //## Activaro desactivar si se van a usar funciones aqui en global Adei
+    console.log('Conectando con Ruth ...');}                 //Mensaje rapido de procesamiento log 
+
+
+    if (ctx.body =='Global_IA_Off'){                //Si se recibio frase clave "Global_IA_Off" para desactivarla de todos los chats
+      entidad = 1;  //entidad_cambio=0;             //Se asigna a la entidad 1
+      await globalState.update({ Adei_Dominio: "Off" }) //Se actualiza el estado global
+      await state.update({ ia_activa: '0' })        // Se apagan permisos de IA en ese momento => No mas respuestas activas
+      await state.update({ mensaje_acum: ' '  })    //Se vacia cadena de mensajes
+      await state.update({ IA_local: 'Off' })       //Se apagan las IA locales
+      //#379 Nombre de IA Global para mensaje consola
+      flowDynamic('Ruth Inactiva');  //Se notifica mediante mensaje rapido Whatsapp
+    }
+
+    if (ctx.body =='REVPER'){                //Si se recibio frase clave "REVPER" (Revision Personal) se desactiva IA para ese chat
+      entidad = 1;  //entidad_cambio=0;             //Se asigna a la entidad 1
+      await state.update({ aislado: '1' })        // Se apagan permisos de IA en ese momento (chat aislado)
+      await state.update({ ia_activa: '0' })        // Se apagan permisos de IA en ese momento (local state: para este chat)
+      await state.update({ mensaje_acum: ' '  })    //Se vacia cadena de mensajes
+      await state.update({ IA_local: 'Off' })       //Se apagan las IA locales
+      flowDynamic('REVPER: INDIV');  //Se notifica mediante mensaje rapido Whatsapp (lo ve el chat)
+    }
+
+    if (ctx.body =='REVIA'){                //Si se recibio frase clave "REVIA" reactiva la IA en este chat
+      entidad = 1;  //entidad_cambio=0;             //Se asigna a la entidad 1
+      await state.update({ aislado: '0' })        // Se quita el aislamiento del chat (se reintegra con todos los demas al IA)
+      await state.update({ ia_activa: '0' })        // Se apagan permisos de IA en ese momento (se activarían hasta nuevo mensaje recibido)
+      await state.update({ mensaje_acum: ' '  })    //Se vacia cadena de mensajes
+      await state.update({ IA_local: 'Off' })       //Se apagan las IA locales
+      flowDynamic('ATEN_AT: REINTEGRADO');  //Se notifica mediante mensaje rapido Whatsapp
+    }
+
+//////////////////////////////////////////////////////////////
+/////SIEMPRE Y CUANDO LA IA PRINCIPAL (ADEI GLOBAL) ESTE APAGADA, PODEMOS ESPERAR UNA CLAVE DE ACTIVACION DE IA LOCAL/////
+//Esperamos comandos o claves de activacion de otros asistentes solo cuando el dominante ADEI IA este apagada...
+//#404  Para activar IAs locales o bien, tener siempre activa a la global solamente.
+//if(Adei_Switch == 'Off'){ //Siempre y cuando la Global este apagada.....o...(ver sig linea)
+
+  if(0){        //CAMBIAR A 1 si es que habrá IA's locales, o en 0 si no se desea que se activen (como en el caso de ADEI, solo ventas)
+
+//***REALIZAR CAMBIO AQUI SI SE VAN A CAMBIAR AGENTES, ENTIDADES, ASISTENTES...... CAMBIO IA
+//ENTIDAD 2 | AGENTE LOCAL 2 | LILA 3D 
+//#408 DATOS DE IA LOCAL Entidad 2 (clave acceso, entidad, asistente, mensaje, hilo, hilo, voz, consola)
+  if (ctx.body =='Ruth X'){                          //Si se recibio frase clave "Ruth X"
+    entidad = 2;  entidad_cambio=1;                         //Se asigna a la entidad 1, y se activa la bandera de cambio
+    await state.update({ mensaje_acum: 'Por favor presentate y guiame.' });
+    await state.update({IA_local: 'On'});                   //Actualizamos variable de IA LOCAL encendida
+    thread =  new OpenAIThread("asst_o4jtbD9WrkSo9L5y8LkUDSh9");  //Se crea instancia OpenAIThread con el asistente correcto  
+    registrar_funciones_ia(thread);
+
+    flowDynamic('Despertando Ruth X | Espere un momento...');                        //Se notifica mediante mensaje rapido Whatsapp
+    const hilo_ruthX = await state.get('hilo_ruthX');       // Se actualiza la variable state y leemos si hay un hilo guardado
+    await state.update({ hilo: hilo_ruthX })                 //Vaciamos el hilo margus al "hilo normal" para que se use
+    await state.update({ voz: "1hlpeD1ydbI2ow0Tt3EW" })   //Actualizamos la variable state con la voz correcta a utilizar | ARIA
+    console.log('Conectando con RuthX...');}       //Mensaje rapido de procesamiento Whatsapp con Margus Aurel
+
+//#419 DATOS DE IA LOCAL Entidad 3
+  if (ctx.body =='Ruth_Superior'){                        //**Si se recibio frase clave "Lila_24"
+    entidad = 3;  entidad_cambio=1;                 //**Se asigna a la entidad 3, y se activa la bandera de cambio
+    await state.update({ mensaje_acum: 'Por favor presentate y guiame.' });
+    await state.update({IA_local: 'On'});           //Se enciende IA local
+    thread =  new OpenAIThread("asst_o4jtbD9WrkSo9L5y8LkUDSh9");     //**Se crea instancia OpenAIThread con el asistente correcto
+    // ¡Registro todas sus funciones de una sola vez!   
+    registrar_funciones_ia(thread);
+
+    flowDynamic('Ruth Superior | Espere un momento...');                        //**Se notifica mediante mensaje rapido Whatsapp
+    const hilo_ruthX= await state.get('hilo_ruthX');       // **Se actualiza la variable state y leemos si hay un hilo guardado
+    await state.update({ hilo: hilo_ruthX })                 //**Vaciamos el hilo adei al "hilo normal" para que se use
+    await state.update({ voz: "1hlpeD1ydbI2ow0Tt3EW" })       //**Actualizamos la variable state con la voz correcta a utilizar | Brian
+   console.log('Conectando con Ruth Superior...');                     //**Mensaje rapido de procesamiento Whatsapp con Abril Cenit
+  }
+
+  //#430 DATOS DE IA LOCAL Entidad 4
+  if (ctx.body =='Orbitia-laser-07'){                        //**Si se recibio frase clave "Lila_24"
+    entidad = 4;  entidad_cambio=1;                 //**Se asigna a la entidad 3, y se activa la bandera de cambio
+    await state.update({ mensaje_acum: 'Por favor presentate y guiame.' });
+    await state.update({IA_local: 'On'});           //Se enciende IA local
+    thread =  new OpenAIThread("asst_zmH2pdqBXHYCSIt6GwCwzCQk");     //**Se crea instancia OpenAIThread con el asistente correcto
+    flowDynamic('Orbitia Laser | Espere un momento...');                        //**Se notifica mediante mensaje rapido Whatsapp
+    const hilo_lila_laser = await state.get('hilo_lila_laser');       // **Se actualiza la variable state y leemos si hay un hilo guardado
+    await state.update({ hilo: hilo_lila_laser })                 //**Vaciamos el hilo adei al "hilo normal" para que se use
+    await state.update({ voz: "ThT5KcBeYPX3keUQqHPh" })       //**Actualizamos la variable state con la voz correcta a utilizar | DOROTY
+   console.log('Conectando con Orbitia Laser...');                     //**Mensaje rapido de procesamiento Whatsapp con Abril Cenit
+  }
+
+}
+  
+
+//Hacemos registro y verificacion del numero para activar el bot
+//Siempre que sea la primera vez (aun no se activa la variable estado.encendido para el bot) o bien, hubo un reinicio
+//o cambio de agente (entidad)
+
+if (!estado.encendido || entidad_cambio==1 ) {    //Si el numero no está activado aun para la IA vamos a revisar...
+  console.log(`Rev Autorizacion IA para ${numeroTelefono}.`)     //O bien hubo cambio de entidad, necesitamos reconstruir el hilo de conv
+
+
+  //Si hubo un cambio de entidad, o bien, estamos ante la llegado del segundo mensaje del cliente,
+  //Entonces es momento de contestarle con IA
+  //Asumo que el primer mensaje es el automatico de publicidad, sin embargo, el segundo mensaje siempre es una pregunta o intencion especifica
+
+    if (entidad_cambio==1 || await state.get('segundo_mensaje') == '1' ){    //Si se recibio la palabra clave Asesor (o hubo cambio de entidad)
+      NumerosTelefonico[ctx.from] = { ...NumerosTelefonico[ctx.from], encendido: true} //Cambiamos su estado en el array a IA encendida
+      console.log(`IA autorizada a: ${numeroTelefono}.`);     //Reportamos en consola
+      estado = getEstado(numeroTelefono);   
+      await state.update({ ia_activa: '1' })  //Activamos su variable local como ia_activa = '1' (activado)
+    }
+
+
+
+      
+
+      //Si el estado del bot es apagado para este numero y no se entro a los filtros anteriores (palabra clave asesor, etc)
+      //Reportamos que aun esta bloqueada, y mantenemos su variable global como ia_activa = '0'
+    if (!estado.encendido) {
+      NumerosTelefonico[ctx.from] = { ...NumerosTelefonico[ctx.from], encendido: false}
+      console.log(`IA AUN BLOQUEADA EN: ${numeroTelefono}.`);
+      estado = getEstado(numeroTelefono);
+      await state.update({ ia_activa: '0' })
+      await state.update({ mensaje_acum: ' '  }) //Si se reviso hasta incluso la palabra clave y no es asesor
+                                                      //Borramos el historial para no estar almacenando cadena larga
+  }
+}
+
+
+////////////////////::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://////////////////////////
+////////////////////:::::::::::::::::AQUI ESTAMOS A ESPERA DE CLAVE ADIOS:::::::::::::::::::::::::::::://////////////////////////
+////////////////////:::::::::::::::::::::QUE CIERRA O APAGA LA IA LOCAL EN CURSO:::::::::::::::::::::::::://////////////////////////
+
+if ( ctx.body.includes("Adiós") || ctx.body.includes("Adios") || ctx.body.includes("adios") || ctx.body.includes("adiós")  ){
+
+    //flowDynamic ('😊 En caso de necesites atención especial envía un Whatsapp al numero de atención con este enlace: https://wa.me/529512943609?text=Adios%20Orbitia:%20Continuar%20apoyo%20=%3E%20'); 
+    flowDynamic ('Sesion cerrada');
+    await state.update({IA_local: 'Off'});              //Y apagamos IA LOCAL
+    
+    let Adei_Switch = globalState.get('Adei_Dominio');  //Obtenemos la lectura actual de la IA GLOBAL
+
+    //Ademas revisamos de nuevo y si ADEI Dominante se apagó, entonces al recibir la palabra adios apagamos el permiso de IA
+    //Ya que en caso contrario, no apagaremos la IA, necesitariamos que Adei este permanentemente atenta a mensajes.
+    //if (Adei_Switch=="Off"){  //Funciona bien cuando la IAGlobal esta permanentemente encendida (y se apaga intencionalmente)
+                                //Pero si no es el caso, entonces no es ni "off" ni "on" y no se cierra bien esta sesión
+                                //Mejor ahora,aunque no movamos esa variable intencionalmente (dejemos que los comandos
+                                //Global_IA_On y Global_IA_Off actuen si se les llama)
+                                //Vamos simplemente a inactivar la IA. Ya si llega otro mensaje tendrá que ver quien la atiende.
+    if (1){
+    await state.update({ ia_activa: '0' }) } //Si se despide, se cierra ciclo, y tambien actualizamos variable global ia_activa='0'
+    
+
+
+//***REALIZAR CAMBIO AQUI SI SE VAN A CAMBIAR AGENTES, ENTIDADES, ASISTENTES...... CAMBIO IA
+    //Si nos hemos despedido /cierre pero la IA GLOBAL esta aun activa entonces debemos volver a ella.
+    if (Adei_Switch=="On"){
+      await state.update({ ia_activa: '1' })    //Continua el permiso de ia activa
+      entidad = 1;  entidad_cambio=1;             //Se asigna a la entidad 1, y se activa la bandera de cambio
+      //await globalState.update({ Adei_Dominio: "On" }) //Se actualiza bandera global para todos los chats
+      //await state.update({ IA_local: 'Off' })           //Se apaga todas las IA locales.
+  
+      //#507 Normalmente seria la informacion de la IA Global o HUB
+      thread =  new OpenAIThread("asst_o4jtbD9WrkSo9L5y8LkUDSh9");  //Sh9 Ruth Se crea instancia OpenAIThread con el asistente correcto
+      flowDynamic('Ruth: Activa');                                //Se notifica mediante mensaje rapido Whatsapp
+      const hilo_ruthX = await state.get('hilo_ruthX');             //Leemos por si hay un hilo/conv previa de ese agente particular
+      await state.update({ hilo: hilo_ruthX })                   //Lo pasamos a la variable de uso "hilo" normal o en curso
+      await state.update({ voz: "XrExE9yKIg1WjnnlVkGX" })       //3EW Oracle Actualizamos la variable state con la voz correcta a utilizar | LUIS R CASIANO
+      console.log('Conectando con Ruth...');
+      }
+
+}
+
+
+//FUNCIONES DE USO ESTRICTO DE INTELIGENCIA ARTIFICIAL CUANDO HA SIDO AUTORIZADA
+// PROCESA MENSAJE O NOTA DE VOZ
+// LA CONVIERTE
+// LA ENVIA A GPT, RECIBE RESPUESTA
+// LA CODIFICA A VOZ O MSJ SEGUN CORRESPONDA
+// LA ENVIA
+
+//Revisamos nuevamente estado de IA GLOBAL e IA local
+Adei_Switch = globalState.get('Adei_Dominio');
+let IA_local = state.get('IA_local');
+IA_AISLADO = state.get('aislado');
+
+//Si la IA GLOBAL esta encendida, entonces el permiso de IA debe estar activo, y las IA locales apagadas. 
+if (Adei_Switch=="On" && IA_AISLADO=='0'){   await state.update({ ia_activa: '1' }) 
+                                             await state.update({ IA_local: 'Off' })  } //Activamos bandera de IA
+
+//Si la IA GLOBAL esta apagada, y tambien la IA local esta apagada, solamente asi podemos desactivar por completo el permiso de uso de ia.
+if (Adei_Switch=="Off" && IA_local=="Off"){  await state.update({ ia_activa: '0' }) }    
+if (IA_AISLADO=='1'                      ){  await state.update({ ia_activa: '0' }) }   
+
+
+//ANTES DE HACER LAS EJECUCIONES DE IA, consultas a GPT, etc,revisamos si tenemos permiso para ello con la variable local de ia_activa
+IA_USO = state.get('ia_activa');
+segundo_mensaje = state.get('segundo_mensaje');    //Volvemos a leer
+
+//if (IA_USO=='1'){  
+if (IA_USO=='1' && segundo_mensaje=='1'){  //## 6 Jul 25 Sin esta modificacion la IA se ejecuta aunque sea el primer mensaje keyword...
+                                            //Se pierde el acum de mensaje, y se gasta tokens aunque no se envia la respuesta al chat.
+
+  const ctx_gpt = globalState.get('gpt'); //Guardamos variable "gpt" de global state para saber si está corriendo actualmente una consulta
+    
+  //Esta es una funcion que coloque con ayuda de ChatGPT para que de forma asíncrona revise constantemente si la variable
+  //local state "gpt" que indica si hay un proceso de RUN Thread activo se encuentra aun en ejecucion
+  //Sin interrumpir el resto del programa, lo que permite recibir mas mensajes y que se atiendan en secuencia
+  //cuando sea posible
+  //El argumento que se le envia es el valor "indeseado"
+  console.log("IA ACTIVA: Si llegamos a la espera...");
+
+
+  
+  //Generamos un numero aleatorio para el tiempo de espera por mensajes (que nos ayuda a esperar tiempos dinamicos)
+  //en la conversacion antes de comenzar a responder (ChatGPT)
+  const numeroAleatorio = Math.floor(Math.random() * (8001 - 3000) + 3000);  //Entre 3000 y 8000
+  
+  await espera_mensajes(numeroAleatorio);
+  //await espera_mensajes(500);
+  console.log(`Terminó espera aleatoria de ${numeroAleatorio} segundos`);  
+
+  await espera_rungpt_fin('1');  //Esperamos a que el run o variable gpt ya no esté corriendo (ya no sea '1')
+  console.log("Terminó espera de RUN o procesos OpenAI en curso");
+
+
+  //Actualizamos estado "escribiendo" en whatsapp
+ // console.log("Iniciamos espera de PROVIDER VENDOR...");
+  const id = ctx.key.remoteJid;
+  await provider.vendor.sendPresenceUpdate('composing', id)
+
+  //console.log("Espera de mensajes y de IA libre terminada... Procedemos");
+
+  //Si terminamos la espera de la funcion anterior significa que la IA está libre sin ejecucion
+  //Asi que el programa continua y rapidamente activamos la variable gpt a '1' para indicar que entonces ahora
+  //Si estamos ocupados en un proceso
+
+
+  /////////////////////////////////////FUNCION SET TIME OUT/////////////////////////////////
+//Esta funcion de setTimeout es para darnos tiempo antes de iniciar el proceso
+//Ya que puede que el cliente envie varios mensajes juntos, durante este tiempo guardamos todos ellos en fila
+//Y asi ejecutamos por los mensaje completos/unidos
+setTimeout(async() => {
+  //if (fila_msj !='1')  IA_procesar(ctx.body);
+
+          //VACIANDO FILA DE MENSAJES RECIBIDOS DURANTE RUN THREAD Y GUARDADOS
+          ///////////////////////////////////////////////////////////
+          //mensaje_pendiente = ctx.body;   //En inicio, el mensaje pendiente es unicamente el de ctxbody
+                                              //A menos que haya fila, entonces los agruparemos mas abajo
+           let fila_msj = state.get('fila_msj');    //Leemos variable de fila actual de mensajes de este numero
+           const sta_gpt = globalState.get('gpt');
+
+          //Pero si ya hay fila y ya termino una consulta de GPT
+          if (fila_msj == '1' ){    //Pero si ya hay fila y ya termino una consulta de GPT
+                                    
+
+            //////////////////////////////////////////////////
+            //SEGMENTO DEDICADO A LA VISION POR INTELIGENCIA ARTIFICIAL
+           //SI SE RECIBE UN EVENT QUE ES UNA IMAGEN/VIDEO se guarda como imagen en una carpeta (que debe ya existir "PICS")
+           //Para leerla, convertirla en b64 (en la funcion  thread.Analizar_imagen que cree en la libreria de openai-threads)
+           //Recibimos una descripcion detallada (on bien lo qu se pida en el prompt) y con eso podemos reaccionar a la imagen
+           //Asi que ahora debo integrar esa descripcion o resultado de la vision IA a las pregutnas que se reciban o el tema que e este tratando
+  
+
+           //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+           /////////////////////////SECTOR IMPLEMENTADO DE VISION IA//////////////////////////////////////
+           //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+           //PRUEBA OCT 2024 RECIBIR IMAGEN PARA ENVIAR
+           var vision_ia;
+           let rutapic = await state.get('img_path');
+           let imag_user = await state.get('imag_user')
+           let video_user = await state.get('video_user')
+
+            //#613 Enfoque de vision IA segun la entidad asignada
+           let sector_vision_ia="";
+           if (entidad==1) sector_vision_ia = "Identifica todos los detalles que aparezcan en la foto para que puedas brindar ayuda o responder al respecto"
+           if (entidad==2) sector_vision_ia = "Identifica todos los detalles que aparezcan en la foto para que puedas brindar ayuda o responder al respecto"
+           if (entidad==3) sector_vision_ia = "Identifica todos los detalles que aparezcan en la foto para que puedas brindar ayuda o responder al respecto"
+           if (entidad==4) sector_vision_ia = "Analiza la imagen enfocandote en Maquinas laser y todo lo relacionado"
+
+           if (imag_user=='1'){     //Se incluye una imagen en el event?
+             //Agregamos la descripcion de la vision IA
+             let new_mensaje_acum = await state.get('mensaje_acum');     //En esta variable leemos el mensaje acumulado actual
+             vision_ia = await thread.Analizar_imagen(rutapic, sector_vision_ia); //Analizamos la imagen con el modulo de OpenaAI | El espacio de las comillas me 
+                                                                    //permitira enviar unas instrucciones al visor IA para que lo tome en cuenta al analizar
+                                                                    //la imagen
+             //await flowDynamic(vision_ia);  //aw Tenemos ya la respuesta, podemos darla en mensaje, o bien, agregarla a la pregunta IA
+ 
+            //#633 Instrucciones de como tomar la vision IA de acuerdo a entidad asignada
+             //***REALIZAR CAMBIO AQUI SI SE VAN A CAMBIAR AGENTES, ENTIDADES, ASISTENTES...... CAMBIO IA
+             //////////////////////////////////////////////////////////////////////////
+             //EN ESTA PARTE REVISAMOS TAMBIEN COMO ESTAN LAS ENTIDADES (IA LOCAL | SUBAGENTES) para dar una "orden" o postura de
+             //VISION IA PARA ANALIZAR LA IMAGEN DEPENDIENDO DE CADA SUBAGENTE
+             let orden_vision="";
+            //Global o dominante (Ruth, HUB, Felipe, Adei...)
+             if (entidad==1) orden_vision='Usando la descripcion de la imagen: ' + vision_ia + '\n\n, responde la pregunta ¿' + new_mensaje_acum + '?';   //Le añadimos el mensaje actual"
+            
+             //LILA_3D_25
+            if (entidad==2) orden_vision='Responde a la siguient pregunta: ¿' + new_mensaje_acum +'? Tomando en cuenta la vision de imagen: ' + vision_ia ;   //Le añadimos el mensaje actual"
+            
+            //LILA_CNC_625
+            if (entidad==3) orden_vision='Usando la descripcion de la imagen: ' + vision_ia + '\n\n, responde la pregunta ¿' + new_mensaje_acum + '?';  //Le añadimos el mensaje actual"
+            
+             //LILA_LASER_1320
+            if (entidad==4) orden_vision='Responde a la siguient pregunta: ¿' + new_mensaje_acum +'? Tomando en cuenta la vision de imagen: ' + vision_ia + '\n\n, identificando problemas, causas, y propuestas de solucion' ;   //Le añadimos el mensaje actual"
+            
+
+            new_mensaje_acum = orden_vision
+            await state.update({ mensaje_acum: new_mensaje_acum  })   //Lo guardamos nuevamene ya actualizado
+           }
+           ///////////////////////////////////////////////////////////////////////////////////////////////////////
+           ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+           //#688 Recordatorio de revisar documentos pero como parte del mensaje de usuario
+            let mensaje_pendiente = state.get('mensaje_acum');    //Entonces leemos toda la fila acumulada
+            mensaje_pendiente ='(No respondas o menciones esta instruccion, pero vuelve a revisar bien todos tus documentos y no inventes informacion, responde corto, al grano, y genera conversacion, asegurate de la información antes de responder a:) ' + mensaje_pendiente;
+            //mensaje_pendiente ='Responde a ' + mensaje_pendiente;
+            
+                                                                      //Si hay evento de nota de voz activamos bandera de voz
+            if (ctx.body.includes('_event_voice_note')){ voz = 1;}   //Y la enviamos a consulta en GPT  }
+
+            await espera_rungpt_fin('1');       //Esperamos a que el run o variable gpt ya no esté corriendo (ya no sea '1')
+             IA_procesar(mensaje_pendiente);   //Y la enviamos a consulta en GPT
+             state.update({ fila_msj: '0' })   //Actualizamos variable de fila vacia
+             state.update({ mensaje_acum: ' ' }) 
+             await state.update({ imag_user: '0'}) //IMAGEN VISION IA
+             //fila_msj = globalState.get('fila_msj'); 
+            
+          }
+
+  }, 100);
+} //Cierre de bloque IF (IA_USO) para ejecutar solo si se activo el uso de IA mediante palabra asesor
+/////////////////////////////////
+////////CIERRE DE FUNCION SET TIME OUT | PARTE AUXILIAR EN LA ESPERA DE MENSAJES 
+
+
+////////////////////////////////////
+////////////////////////////////////
+//Funcion con ayuda de ChatGPT, para esperar a que no lleguen mas mensajes
+async function espera_mensajes(tiempo) {
+  const acum = state.get('mensaje_acum'); 
+  const tamaño_inicial = acum.length;
+
+  return new Promise(resolve => {
+      const intervalo = setInterval(() => {
+          const acum_2 = state.get('mensaje_acum'); 
+          const tamaño_final = acum_2.length;
+
+          if (tamaño_final === tamaño_inicial) {
+              clearInterval(intervalo);
+              resolve();
+          }
+      }, tiempo); // Utiliza el tiempo especificado en lugar de un valor fijo de 5000
+  });
+}
+////////////////////////////////////
+////////////////////////////////////
+
+
+////////////////////////////////////
+//Funcion con ayuda de ChatGPT, para mantener espera hasta que se acaba de correr
+//el run del asistent actual, que advertimos con variavble globalState gpt '0' o '1'
+
+async function espera_rungpt_fin(valorIndeseado) {
+  return new Promise(resolve => {
+      const intervalo = setInterval(() => {
+        const sta_gpt = globalState.get('gpt');
+        //const fila_msj = state.get('fila_msj');  
+        //console.log("Espernado que GPT se desactive...");
+          if (sta_gpt != valorIndeseado) {
+              clearInterval(intervalo);
+              resolve();
+          }
+      }, 1000); // Intervalo de verificación en milisegundos
+  });
+}
+////////////////////////////////////
+////////////////////////////////////
+
+
+
+       
+//////////////////////////////////////////////////////////
+//ESTO SIGUE SIENDO PARTE DEL ADDACTION DEL FLOW
+//Pero es el segmento de procesamiento con GPT de un mensaje o peticion
+//Hecho funcion para que pueda llamarse en varias ocasiones de forma mas simple desde el codigo principal de arriba
+      
+async function IA_procesar (mensaje) {              //Declaramos la funcion async, recibe como argumento el texto de consulta
+ 
+            await globalState.update({ gpt: '1' })  //Activamos variable global GPT en curso
+            console.log(`Inicia funciono IA_procesar enlazando con OpenAI...`);
+            console.log(`::::::::::::::::::::::::::::::🤖 ID Numero ${ctx.from}::::::::::::::::::::::::::::::`); 
+             //Primeramente dejamos en consola el numero remitente
+            voz=0;                                                          //Y comenzamos con bandera de voz apagada, en cero.
+               
+              //Revisamos si el ctx.body actual es una nota de voz
+              if (ctx.body.includes('_event_voice_note')){
+                console.log("🤖 Voz a texto...."); 
+                const text = await handlerAI(ctx);                        //Usamos Plugin (interno de bot :S ) para convertir nota de voz a texto.
+                console.log(`🤖 Fin voz a texto....[TEXT]: ${text}`);    //Reportamos a consola lo guardado en "text"
+                voz=1;                                                    // Activamos bandera de VOZ
+                textCliente = text
+              }
+      
+              //En cambio, si la bandera de voz no fue activada, tratamos a la interacción como simple mensaje
+              //de texto.
+              if (!voz){
+                textCliente = mensaje;
+                console.log(`🤖 MENSAJE REUNIDO: ${textCliente}`);
+              }
+                 
+              //console.log(`Enviamos preguntas a CHATGPT`)
+        
+      let response="";
+      let textFromAI="";
+
+
+  if(1){
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::://
+////////////////***REALIZAR CAMBIO AQUI TAMBIEN SI SE VAN A CAMBIAR AGENTES, ENTIDADES, ASISTENTES...... CAMBIO IA/////////
+
+//#755 #855? Recordatorio de revisar documentos pero como "instructions" parte de funcion RunThreadAndAwait
+      //Vemos si su variable de hilo ya tiene un previo hilo asignado
+      //Sin embargo, el "hilo" que debemos revisar depende de la entidad o subagente en curso
+      //Asi que dejamos estas condiciones para leer/guardar el correcto
+      var conv_prev = await state.get('hilo'); 
+      var vector_store = ""; 
+      //#765 Asignacion de Vector Stores para consulta de archivos, segun entidad, respetar hilos.
+      //vs_6840e0516568819195016e3f26e06655 //temporal ruth
+      
+      //vs_rUhnkTMNuymyhhk854wABfFH //Vector vacio HUB ejemplos...
+      //if (entidad==1) {conv_prev = await state.get('hilo_adei');          vector_store = "vs_aooYeX8jRKhaWGY0hu2CFqYN" }  //Vs Adei
+      if (entidad==1) {conv_prev = await state.get('hilo_ruthX');         vector_store = "vs_6840e0516568819195016e3f26e06655" }  //Vs Ruth
+      //if (entidad==3) {conv_prev = await state.get('hilo_ruthX');         vector_store = "vs_6840e0516568819195016e3f26e06655" }  //Vs Ruth
+      if (entidad==2) {conv_prev = await state.get('hilo_lila_3d');     vector_store = "vs_j9s265IAMXqCyz3GcjSbQden" }  //Vs 3D LILA 25
+      if (entidad==3) {conv_prev = await state.get('hilo_lila_cnc');    vector_store = "vs_O0LdSHPz7G23q1gg3PmZ6tGA" }  //Vs CNC LILA 625
+      if (entidad==4) {conv_prev = await state.get('hilo_lila_laser');    vector_store = "vs_kZcH7gqPiJDLRAhdMN9LA04X" }  //Vs LASER LILA 1320
+
+      conv_prev = String(conv_prev);    //Lo convertimos a texto
+  
+      //Si no hay un hilo o conversacion previa, lo creamos.
+      if  (conv_prev.length <10 ) {                   //Si el texto es menor a 10 caracteres significa que no tiene ningun hilo asignado aun.
+        const hilo = await thread.createThread(vector_store);     //Por lo tanto creamos un nuevo thread de GPT y guardamos en hilo
+        await state.update( {hilo: hilo.id });        //Actualizamos la variable dee estado con el hilo.id nuevo
+        console.log(">>>Este es el hilo creado:");        //Reportamos en consola
+        console.log(await state.get('hilo'));         //Reportamos en consola el hilo creado que se utilizará
+        console.log();
+        
+        entidad_cambio=0;
+
+        //***REALIZAR CAMBIO AQUI SI SE VAN A CAMBIAR AGENTES, ENTIDADES, ASISTENTES...... CAMBIO IA
+        //Esto nos ayuda a tomar el hilo que se haya creado para la conversacion actual, y guardarlo como el "hilo" a seguir
+        //para este numero telefonico cuando se trate de X entidad o asistente. Y asi recuperar cada hilo
+        // auqnue se cambio de asistente.
+        //#786 Verificacion de hilos asignados, segun nombres de agentes, variables hilos.
+        if (entidad==1) await state.update( {hilo_ruthX: hilo.id });   //Segun entidad actualizamos el hilo en state
+        //if (entidad==2) await state.update( {hilo_ruthX: hilo.id });  //Segun entidad actualizamos el hilo en state
+        //if (entidad==3) await state.update( {hilo_ruthX: hilo.id });   //Segun entidad actualizamos el hilo en state
+        if (entidad==2) await state.update( {hilo_lila_3d: hilo.id });  //Segun entidad actualizamos el hilo en state
+        if (entidad==3) await state.update( {hilo_lila_cnc: hilo.id });   //Segun entidad actualizamos el hilo en state
+        if (entidad==4) await state.update( {hilo_lila_laser: hilo.id });   //Segun entidad actualizamos el hilo en state
+      }
+
+
+ ////En caso contrario, entonces el "hilo" tiene mas de 10 letras. Si es un hilo existente.
+ // Lo recuperamos, y lo asignamos.
+      else{                                       
+        entidad_cambio=0;
+        console.log();
+        console.log(">>>Ya existe un Thread/Hilo: ");
+        console.log(conv_prev);
+        
+        await thread.RetrieveThread(conv_prev);  //Mejor cree esta funcion que "te muestra info del thread que le pides" creo.. :S
+                                                //Pero en el proceso me permite redirigirme al thread dado y que funcione.
+        
+        console.log();
+        console.log(">>>Este es el hilo que continua");    //Reportamos en consola
+        console.log(await state.get('hilo'));
+        }
+       
+
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+             
+                console.log(await thread.createUserMessage(textCliente));  //Se toma el mensaje del cliente y se genera el mensaje user para gpt
+                //console.log("Ya se creó el mensaje de usuario....");
+                
+
+                console.log("Entramos a runthreadandawait");
+                await thread.runThreadAndWait();        //Se corre o ejecuta el thread gpt
+                
+                console.log("Salimos de runthreadandawait");
+
+                //await thread.RevisarFunciones(conv_prev);
+      
+                console.log("RESPUESTA OBTENIDA:");
+                response = await thread.getResponse();   //Se obtiene la respuesta
+
+                //////////////////////////////////////////////////////
+                ////PRUEBA DE CODIGO JUNIO 2025 EVALUA SI EL ASSISTANT ENVIO EL MSJ PIDIENDO CODIGO DE AUTORIZACION
+                //´PARA DARLE EL CODIGO Y QUE TENGA PERMISO.
+                //PERMISOS AUTORIZACIONES PARA USO DE FUNCIONES POR ENTIDADES (SOLO CIERTAS ENTIDADES DEBERIAN ACCEDER A X FUNCIONES FUNCTION CALLING)
+                //La idea es que sea un mismo asistente el que contesta, pero sabiendo que solo hará algunas cosas para ciertas personas
+
+                /*
+               EJEMPLOS
+               Clientes generales: Permiso para funciones de tipo - Ejemplo Ruth
+                                  Revisar fecha actual
+                                  Enviar MSJ o dirigir cliente potencial a atencion personal
+                                  Registrar cliente en lista Drive de clientes potenciales (producto de interes, ciudad, numero, intencion de comrpa....)
+                                  Registrar a cliente en lista de problemas urgentes para atender (cliente problematico, etc)
+                                  Registrar a cliente en lista de "acaba de pagar un pedido" atenderlo.
+                                  Registrar a cliente en lista de "quiere una llamada" (y vale la pena)
+                                  Inscribir a cliente (y recibir pago) en curso/capacitacion
+                                  Generar enlace con pedido listo para pagar en Wx, carrito de compra, o Whats Faomic
+
+                                  Repartir cupones de descuento durante la conversacion para incentivar ventas ADEI
+                                  Clasificar clientes potenciales y enviarles mensaje de recuperacion de pedido o compra, incentivarlos.
+
+
+                                  Buscar precios/productos en lista de precios Drive
+                                  Agendar citas/calendario
+                                  Enviarle correo
+                                  Generar cotizacion automatica y enviarle
+                                  Enviarle enlace de compra
+                                  Enviarle enlace de pago MercadoPago, Paypal, Stripe
+                                  Generar pedido en WIX? API???
+                                  Revisar numero de rastreo y seguimiento
+                                  Buscar video en lista de videos Drive 
+
+
+                  Empleado o Supervision -  Ejemplo Ruth X
+                                  Revisar pedidos Andivi, estado, anticipos, cliente, datos, semaforo seguimiento
+                                  Revisar productos en existencia para pedidos
+                                  Revisar productos en existencia para STOCK en tienda
+                                  Revisar lista de videos para mandarles a clientes
+                                  Revisar lista de clientes potenciales para marcarles
+
+                  Supervisor superior? -  Ejemplo Ruth Y
+                                  Funciones anteriores...y +
+                                  Modificar las bases de datos; Inventarios, Pedidos, Productos.
+                                  Revisar bases de datos contables? Pagos? Ingresos? Ventas? Estadisticas?
+                                  Revisar proveedores?
+                                  
+                  Propietario: Ejemplo Ruth Z
+                                  Funciones anteriores y...+
+                                  Intervenciones físicas (puertas, luz, computadoras, camaras, motos, autos)
+                                  Estadisticas, decisiones
+                                  Rendimiento de empleados, analisis de modificaciones de datos
+                                  Analisis de pedidos, de empleados
+                                  Proyectos secretos
+
+
+                  Fueron solo ejemplos para conservar la idea de esta opcion
+                  Pues otra forma seria contar con un asistente diferente (y ejecucion del programa distinta) para cada entidad.
+                  Aun podria ser en un mismo bot y celular, pero accedería a diferentes asistentes:
+                    - Ruth
+                    - Ruth X
+                    - Ruth Y
+                    - Ruth Z
+
+                  Aunque el cambio podría ser simple y consistiria en lo mismo (entidad-clave acceso-permiso)
+                  Cada asistente debería tener su propia base de datos, sus propias funciones, su propio ID, sus propios threads...
+                  Y ya que en este caso serían muy similares, quizas no valga la pena tener que darle mantenimiento
+                  y actualizar datos de cada una.
+
+
+
+
+                  ///////
+                  Por el momento para esta primera prueba de integración ANDIVI-PAOLA-RUTH 08 JUNIO 2025
+                  Utilizaré creo que solo dos entidades
+
+                  Ruth -  Atencion a clientes general (automatica, global, atiende a todos.)
+                  Ruth X - Para que Paola pruebe sus respuestas, obtenga información, y revise inventarios, stock, y pedidos en curso.
+                  Ruth Y -  - Para mi uso, (investigar almacenamiento y revision de patrones en conversaciones
+                            - Asi podria revisar los chats de paola, pedir a la IA que detecte platica extrañas, problemas, patrones, trampas, errores...)
+                            - Revisar cuantas conversaciones hubieron en la semana, mes etc... cuantos hicieron un pedido?
+                            - Cuantos vienen de facebook? instagram? whatsapp? (tambien paola deberia poder  (Ruth X)
+                            - Modificar, agregar o eliminar pedidos, productos stocks, anticipos, status de entregado, verificacion de pagos.
+                            - Generar retroalimentacion con base en patrones detectados, chats, etc y mejorar forma de atender, respuestas, y "entrenar" IA
+
+
+
+                */
+
+
+                const claveSolicitud = "ZX-7L3P1"; //Clave de solicitud que se espera de parte del assistant (asi verificamos que es una solicitud real)
+                let codigoAutorizacion = "000000"; //Inicializacion de codigo de autorizacion que devolveremos al assistant
+                                                  //Luego el enviará ese codigo como parametro a la function calling 
+                                                    //Y ahi verificaremosque sea la clave correcta, si no lo es, no se ejecuta la función.
+
+                const texto = response.content?.[0]?.text?.value || "";  //Este texto se recibe del assistant y revisaremos si esta pidiendo acceso con clave de solicitud
+                 
+
+              if (texto.includes(`código de solicitud es: ${claveSolicitud}`)) {    //Si incluye "codigo de solicitud es: XXXXX"?.....
+                //await flowDynamic(texto);
+                // Simular mensaje del usuario con el código real
+
+
+                //PERMISO PARA LA ENTIDAD 1 (General) (Entidad superior con mas permisos)
+                if (entidad==1){
+                  codigoAutorizacion = "112233"; //Si es entidad 3 tiene permiso
+                  console.log(await thread.createUserMessage(`Verificado. Mi código de autorización es: ${codigoAutorizacion}`));  //Se toma el mensaje del cliente y se genera el mensaje user para gpt
+                  //console.log("Ya se creó el mensaje de usuario....");
+                  await thread.runThreadAndWait();        //Se corre o ejecuta el thread gpt
+                  response = await thread.getResponse();   //Se obtiene la respuesta
+                }
+
+
+
+                //PERMISO PARA LA ENTIDAD 2 (X) (Entidad superior con mas permisos)
+                if (entidad==2){
+                  codigoAutorizacion = "445566"; //Si es entidad 3 tiene permiso
+                  console.log(await thread.createUserMessage(`Verificado. Mi código de autorización es: ${codigoAutorizacion}`));  //Se toma el mensaje del cliente y se genera el mensaje user para gpt
+                  //console.log("Ya se creó el mensaje de usuario....");
+                  await thread.runThreadAndWait();        //Se corre o ejecuta el thread gpt
+                  response = await thread.getResponse();   //Se obtiene la respuesta
+                }
+
+
+
+                //PERMISO PARA LA ENTIDAD 3 (Y) (Entidad superior con mas permisos)
+                if (entidad==3){
+                  codigoAutorizacion = "778899"; //Si es entidad 3 tiene permiso
+                  console.log(await thread.createUserMessage(`Verificado. Mi código de autorización es: ${codigoAutorizacion}`));  //Se toma el mensaje del cliente y se genera el mensaje user para gpt
+                  //console.log("Ya se creó el mensaje de usuario....");
+                  await thread.runThreadAndWait();        //Se corre o ejecuta el thread gpt
+                  response = await thread.getResponse();   //Se obtiene la respuesta
+                }
+
+
+                //Resto de entidades no tienen permiso (en este caso diferentes de #3, pero puede cambiar)
+                //Y le damos un codigo incorrecto.
+                if (entidad >= 4) {
+                  codigoAutorizacion = "123456"; //Si es entidad distinta damos codigo falso
+                  response.content[0].text.value = "No estas autorizado para esta función.";   //Y de una vez damos respuesta para contexto de assistant.
+                }
+
+                }
+                
+                /////////////////////////////////////////////////
+                //Continua flujo normal.
+
+
+                                                                                                  //::::::::::::::::::::::
+              if (response.content && response.content.length > 0 && response.content[0].text) {   //if (typeof response != 'undefined') {  
+                  await state.update({ resp_IA: await response.content[0].text.value  }) //Guardamos rapido la respuesta en un state del ctx
+                 //console.log('La variable RESPONSE AI tiene un valor definido.'); // Imprimimos mensaje en consola
+                  
+              //En caso de que la respuesta quedara como UNDEFINED emitimos un mensaje para buscar queel cliente
+              //haga una nueva consulta o reformule la pregunta, y reintentar el procesamiento con OpenAI GPT     
+              } else {
+                  await state.update({ resp_IA: 'No entendi del todo, podria explicarme por favor?'  })
+                  //textFromAI= "No entendi del todo, podria explicarme por favor?";
+                  console.log('Error en respuesta | Undefined.');      
+              }
+
+                textFromAI = state.get('resp_IA'); 
+                //textFromAI = textFromAI.replace(/【\d+:\d+†[a-zA-Z]+】/g, ''); //Reemplaza las citas/quotes en caso de que las entregue al buscar archivos
+                textFromAI = textFromAI.replace(/【\d+:\d+†[^】]+】/g, '');
+                console.log(textFromAI);                     //Cuya respuesta se guarda en "textFromAI"
+                console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+                console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+                console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+                
+
+          } else {
+              console.log("La función thread.runThreadAndWait() ya está en curso.");
+          } 
+
+
+//////////////////////////////////////////////////
+///:::::::::::::::::::::::::::::::::::::::::::PRUEBA DEFUNCTION CALL
+ // 'response' es el mensaje del assistant, obtenido con messages.list(...)
+// Asume que ya tienes: thread_id, run (de runs.create), response (mensaje del assistant obtenido con messages.list)
+
+
+
+
+//////////////////////////////////////////////////
+///:::::::::::::::::::::::::::::::::::::::::::PRUEBA DEFUNCTION CALL
+
+
+      
+                //Si desde un inicio el cliente envio una nota  de voz, lo consultamos aquí
+                //Para igualmente darle una respuesta en voz. 
+                
+                
+
+                //Hago este cambio para desactivar la funcion de generar audio de respuesta
+                //Asi respondera a cualquier nota de audio, pero solo en texto, sin sintetizador de voz.
+                //#858 Activar o desactivar sintetizador de voz.
+                //if (voz){  //    
+                if (0){
+                console.log("\n🙉 Convirtiendo mensaje de texto a voz sintética....");
+                const voz_uso = state.get('voz');
+                const path = await textToVoice(textFromAI, voz_uso);            //Convertimos la respuesta limpia a una nota de voz (ElevenLabs)
+                console.log(`🙉 Generación de voz terminada [PATH]:${path}`);    //Reportamos resultado en consola interna
+                await flowDynamic([{ body: "escucha", media: path }]);  //Enviamos nota de voz a conversacion cliente.
+
+                //Nueva Linea 2025
+                if (textFromAI.includes("Vuelve a revisar bien todos tus documentos")) {
+                  textFromAI="Muy bien, en seguida lo reviso y te brindo informacion :)"; 
+                  }
+                }
+              
+      
+              await flowDynamic(textFromAI);                        //Enviamos respuesta limpia en forma de texto a chat.
+              await globalState.update({ gpt: '0' })  //Desactivamos variable global de gpt en curso
+              return Promise.resolve("Resultado de IA_procesar");
+
+              }// Cierre de agrupamiento de funcion Inteligencia Artifical procesamiento
+      }    
+    )
+
+
+export {flowReparacion};

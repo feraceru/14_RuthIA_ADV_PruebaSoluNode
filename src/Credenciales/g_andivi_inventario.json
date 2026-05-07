@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "andivi-inventario",
+  "private_key_id": "d48b0f72f2093aa81bc19d94682fe9cfcf20d3d5",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC8pOF8oL9ef/du\nu3wgsdLxI3yTHiW64xCRtFU15kqjfUMXFbFPevHTOC5VwC0jliW3sG+8ExCB1ndj\nWSKMaJpdam/oVDq2YgsKOSytj2eL5fIu09hsUhbKDmHoEXTlsfHgmL3WyFgDAB3R\nRewEBun3R3Re90SHunI/v7N9JiFv57r+CKiHNw8OqgJ6zpNjnQYMgtTnqrFzGXbo\nJWR6hnRF5IKbcaXpB0ibum9p6RBapyaRpXBiKHJyvgmbH9A+Rpe972k7m2Wnslu2\nz2QlO5dIeGi42+PKEJtqLsMhfMUo7Rl06qOvB52HLDw2kBhQSwy7c9Yt6SKnqli/\ndR/6fS4ZAgMBAAECggEAFub7mypW4W2uyApKARwlrHHu+1tzIDPV/KKEn9UUJbIc\n9Y4EJ06ZUlflRDLfKA1gCeOJRS+ZVvIHL5AQQjSm3QWBjZbARAk2JukXFAEvhIwH\nsYi1ozz6GFDTsR2BcCuA3pAcqBlNmhunAxO2miyOth8+MRNbBhFsMnIfI+f/sjqd\nsMaZiIEiG4nm0fKyhrAY9AUtYNUJ9LT7iu9+1Z94+x3mQZy3N6HNcpFXttESVAs5\nyo0qwFxSErPosHepP37d3HMY3IA0pRgNIy48YvYGMCUvccC9+KLTLQ0BK1lVjPnx\n+q0APmDo2zofm3X1xPSjocLX+yI5znNBWMEzIkTcgwKBgQD5JXC4/zYXZK2M2rNw\nqq73ffw45S27Ih76B08REyflYtEFBo9/umJhnUJnnl8fLzQ7tFpx+OjmHDWNNs1d\nECpM4FhCzzPAWJbR/v0PDfChrnnaGqO8RSTLr/jDh8BH7KfmIePC6de2U30926i7\n0JzES9J7uDaEeHP7UvJ85hcUAwKBgQDB1V3ds/cqo8KQsHuEO3Wvko9AbGUH5FuZ\nkJuU7JyvRKqnDgHEOv+qUPTDf6UgD52mrUHQbqa8QwkkE1vOT4VAcmKEmKzp6Zbb\nazu0BE/9bkGv7+vw14E0rifVmdENXoVLXwdc/ExB/sXDPzsrb0ZGTLSFl0w9ODQJ\n7fb4Gl4QswKBgFA/i/g6U7zjM7c7tjJi96pFzRiyULGGwv17ny77wYzz8CkzPMNC\nUG/qjDn929uag7N7Wup85t8/VMxgS3NfQpCybhtOy/d3UVTgUbgooEojfaIPlI+O\nodRtoK2yKu+/vTC117uvQEi8yYlEGCwufGAJoAkzg3PVrF3WEL7ECcjrAoGASWYz\nqk2IziO+/K1nyHX/paGZD2s8gtWNfkRNNgK3foNBIAtkzdsNj4Aif5lpfQ+Mwl4f\nav9LskSsRHX0MNbZ/cKS3eU2rUkgMCyWKh/r7mr/AtGWhdgFfF5qhS8/A5IEZbsx\nfZuogOEqIDpkfJkhgmNvhJr7ar9KrWvoNqE9d5MCgYBJSq37f+Rl6Dw2GuOESZdr\nA26DYbgRt/JrppZvmiDXkDZwQFY4n8Lys7ZgR9MLfYNSMSLxk7Csr8AeeHfIO+aw\nlzkSKsju+MqoR8uNI86t8AiOm3jNClBo7+sqQiSfcq1Ey6FOIao3xTIbYc7IE8hL\ni/PjQ/CfdW7ibGZMxH5o7w==\n-----END PRIVATE KEY-----\n",
+  "client_email": "andivi-blue@andivi-inventario.iam.gserviceaccount.com",
+  "client_id": "102149177322582604863",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/andivi-blue%40andivi-inventario.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
